@@ -1,99 +1,6 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <div class="container">
-        <a class="navbar-brand" href="#">Lim Bodhi Wijaya</a>
-        <ul class="navbar-nav ml-auto">
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'main:logout' %}">Logout</a> 
-            </li>
-        </ul>
-    </div>
-</nav>
-
-    <h1>Shopping List Page</h1>
-
-    <h5>Class:</h5>
-    <p>{{class}}</p>
-    
-    <table id="product_table"></table>
-
-    {% comment %} Berikut cara memperlihatkan data produk di bawah baris ini {% endcomment %}
-
-    {% for product in products %}
-        <tr>
-            <td>{{product.name}}</td>
-            <td>{{product.price}}</td>
-            <td>{{product.description}}</td>
-            <td>{{product.date_added}}</td>
-            <td>
-                <a href="{% url 'main:edit_product' product.pk %}">
-                    <button>
-                        Edit
-                    </button>
-                </a>
-                <a href="{% url 'main:delete_product' product.pk %}">
-                      <button>
-                          Delete
-                      </button>
-                  </a>
-            </td>
-        </tr>
-    {% endfor %}
-</table>
-
-<br />
-
-<h5>Sesi terakhir login: {{ last_login }}</h5>
-
-<br />
-<br />
-
-<a href="{% url 'main:logout' %}">
-    <button>
-        Logout
-    </button>
-</a>
-
-<script>
-    async function getProducts() {
-        return fetch("{% url 'main:get_product_json' %}").then((res) => res.json())
-    }
-    function addProduct() {
-        fetch("{% url 'main:add_product_ajax' %}", {
-            method: "POST",
-            body: new FormData(document.querySelector('#form'))
-        }).then(refreshProducts)
-
-        document.getElementById("form").reset()
-        return false
-    }
-    async function refreshProducts() {
-        document.getElementById("product_table").innerHTML = ""
-        const products = await getProducts()
-        let htmlString = `<tr>
-            <th>Name</th>
-            <th>Price</th>
-            <th>Description</th>
-            <th>Date Added</th>
-        </tr>`
-        products.forEach((item) => {
-            htmlString += `\n<tr>
-            <td>${item.fields.name}</td>
-            <td>${item.fields.price}</td>
-            <td>${item.fields.description}</td>
-            <td>${item.fields.date_added}</td>
-        </tr>` 
-        })
-        
-        document.getElementById("product_table").innerHTML = htmlString
-    }
-
-    refreshProducts()
-    document.getElementById("button_add").onclick = addProduct
-</script>
-
 <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -125,6 +32,89 @@
         </div>
     </div>
 </div>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="#">Shopping List</a>
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item ml-auto">
+                    <a class="nav-link" href="{% url 'main:logout' %}">
+                        Logout
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
 
-<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">Add Product by AJAX</button>
+    <div class="container mt-4">
+        <h1>Shopping List Page</h1>
+
+        <h5>Name:</h5>
+        <p>{{name}}</p>
+
+        <h5>Class:</h5>
+        <p>{{class}}</p>
+        <table id="product_table"></table>
+        <h5>Sesi terakhir login: {{ last_login }}</h5>
+        <br />
+        <a href="{% url 'main:logout' %}">
+            <button class="btn btn-primary">
+                Logout
+            </button>
+        </a>
+        <a>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">Add Product by AJAX</button>
+        </a>
+    </div>
+    
+    <script>
+        async function getProducts() {
+            return fetch("{% url 'main:get_product_json' %}").then((res) => res.json())
+        }
+        async function refreshProducts() {
+            document.getElementById("product_table").innerHTML = ""
+            const products = await getProducts()
+            let htmlString = `<tr>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Description</th>
+                <th>Date Added</th>
+                <th>Edit</th>
+                <th>Delete</th>
+            </tr>`
+            products.forEach((item) => {
+                htmlString += `\n<tr>
+                <td>${item.fields.name}</td>
+                <td>${item.fields.price}</td>
+                <td>${item.fields.description}</td>
+                <td>${item.fields.date_added}</td>
+                <td>
+                    <a href="edit-product/${item.pk}">
+                        <button>
+                            Edit
+                        </button>
+                    </a>
+                </td>
+                <td>
+                    <a href="delete/${item.pk}">
+                        <button>
+                            Delete
+                        </button>
+                    </a>
+                </td>
+            </tr>` 
+            })
+            document.getElementById("product_table").innerHTML = htmlString
+        }
+        refreshProducts()
+        function addProduct() {
+            fetch("{% url 'main:add_product_ajax' %}", {
+                method: "POST",
+                body: new FormData(document.querySelector('#form'))
+            }).then(refreshProducts)
+
+            document.getElementById("form").reset()
+            return false
+        }
+        document.getElementById("button_add").onclick = addProduct
+    </script>
 {% endblock content %}
